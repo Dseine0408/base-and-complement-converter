@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Base & Complement Converter</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --primary: #2c3e50;
@@ -40,9 +41,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: 0.2s;
         }
-        .lang-btn:hover {
-            background-color: #1a252f;
-        }
 
         .main-container {
             width: 100%;
@@ -71,9 +69,6 @@
             color: var(--secondary);
             box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
             border-top: 4px solid var(--secondary);
-        }
-        .tab-btn:hover:not(.active) {
-            background-color: #d1d8e0;
         }
 
         .panel {
@@ -110,10 +105,6 @@
             border: 2px solid #e0e6ed;
             border-radius: 8px;
             outline: none;
-            transition: all 0.2s;
-        }
-        input:focus, select:focus {
-            border-color: var(--secondary);
         }
         input[type="text"] {
             flex-grow: 1;
@@ -130,11 +121,7 @@
             cursor: pointer;
             font-weight: bold;
             flex: 2;
-            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.2);
         }
-        .btn-action:hover { background-color: #2980b9; transform: translateY(-2px); }
-        .btn-action:active { transform: translateY(0); }
-        
         .btn-random {
             background-color: #f39c12;
             color: white;
@@ -143,7 +130,6 @@
             font-weight: bold;
             flex: 1;
         }
-        .btn-random:hover { background-color: #d68910; }
 
         .result-box {
             margin-top: 25px;
@@ -184,14 +170,12 @@
             margin: 15px 0;
             text-align: center;
             background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         .data-table th, .data-table td {
             border: 1px solid #dcdde1;
             padding: 10px;
         }
-        .data-table th { background-color: #f1f2f6; color: var(--primary); }
-        .data-table .highlight-text { font-weight: bold; color: var(--accent); font-size: 1.2em; }
+        .data-table th { background-color: #f1f2f6; }
 
         .direct-box {
             display: flex;
@@ -210,25 +194,37 @@
             border: 2px solid #f1c40f;
             border-radius: 8px;
             font-weight: bold;
-            color: #d35400;
         }
-        .arrow-down { color: var(--secondary); font-size: 1.5em; margin: 10px 0; }
 
         .math-table { border-collapse: collapse; font-family: monospace; font-size: 1.3em; margin: 0 auto; }
         .math-table td { padding: 5px 8px; }
-        .math-border { border-left: 2px solid var(--primary); border-bottom: 2px solid var(--primary); text-align: right; padding-right: 15px !important; padding-left: 10px !important; width: 60px; }
-        .remainder { color: var(--accent); padding-left: 15px !important; font-weight: bold; }
-        .final-quotient { color: var(--success); font-weight: bold; text-align: right; padding-right: 15px !important; }
-
-        .highlight { background-color: #fff3cd; padding: 3px 6px; border-radius: 4px; font-weight: bold; color: #d35400; }
-
-        .feedback-correct { color: var(--success); font-weight: bold; font-size: 1.2em; }
-        .feedback-wrong { color: var(--accent); font-weight: bold; font-size: 1.2em; }
+        .math-border { border-left: 2px solid var(--primary); border-bottom: 2px solid var(--primary); text-align: right; padding-right: 15px; width: 60px; }
+        .remainder { color: var(--accent); font-weight: bold; }
+        .final-quotient { color: var(--success); font-weight: bold; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .anim-step { opacity: 0; transform: translateY(15px); transition: all 0.5s ease-out; }
         .anim-step.visible { opacity: 1; transform: translateY(0); }
-        tr.anim-step { transform: none; }
+
+        .difficulty-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .diff-btn {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 2px solid #ddd;
+            background: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .diff-btn.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
 
         .hex-guide {
             background: #fff8e1;
@@ -239,15 +235,6 @@
             font-size: 0.95em;
             display: none;
         }
-        .hex-guide span {
-            display: inline-block;
-            background: #ffe082;
-            padding: 3px 8px;
-            border-radius: 4px;
-            margin: 2px;
-            font-weight: bold;
-            color: #d35400;
-        }
     </style>
 </head>
 <body>
@@ -255,7 +242,6 @@
 <button id="langToggleBtn" class="lang-btn" onclick="toggleLanguage()">English</button>
 
 <div class="main-container">
-    
     <div class="tab-nav">
         <button class="tab-btn active" onclick="switchTab('tab-convert')" data-ko="진법 변환" data-en="Base Convert">진법 변환</button>
         <button class="tab-btn" onclick="switchTab('tab-complement')" data-ko="보수 계산" data-en="Complement">보수 계산</button>
@@ -264,405 +250,223 @@
 
     <div id="tab-convert" class="panel active">
         <h2 data-ko="진법 및 보수 변환기" data-en="Base & Complement Converter">진법 및 보수 변환기</h2>
-        
         <div id="hexGuide" class="hex-guide">
             <b data-ko="16진수 참고:" data-en="Hex Guide:">16진수 참고:</b> 
             <span data-ko="10부터는 알파벳을 사용합니다." data-en="Use alphabets from 10.">10부터는 알파벳을 사용합니다.</span><br>
-            <span>A = 10</span> <span>B = 11</span> <span>C = 12</span> 
-            <span>D = 13</span> <span>E = 14</span> <span>F = 15</span>
+            <span>A=10 B=11 C=12 D=13 E=14 F=15</span>
         </div>
-
         <div class="input-group">
-            <input type="text" id="calcInput" data-placeholder-ko="숫자 입력 (예: 1011, 1F)" data-placeholder-en="Input number (e.g., 1011, 1F)" placeholder="숫자 입력 (예: 1011, 1F)" oninput="this.value = this.value.toUpperCase()">
+            <input type="text" id="calcInput" data-placeholder-ko="숫자 입력 (예: 1011, 1F)" data-placeholder-en="Input (e.g., 1011, 1F)" placeholder="숫자 입력" oninput="this.value = this.value.toUpperCase()">
         </div>
-        
         <div class="input-group">
             <select id="calcFrom" onchange="checkHexGuide()">
-                <option value="2" data-ko="2진수" data-en="Binary (2)">2진수</option>
-                <option value="8" data-ko="8진수" data-en="Octal (8)">8진수</option>
-                <option value="10" selected data-ko="10진수" data-en="Decimal (10)">10진수</option>
-                <option value="16" data-ko="16진수" data-en="Hex (16)">16진수</option>
+                <option value="2">2진수</option><option value="8">8진수</option><option value="10" selected>10진수</option><option value="16">16진수</option>
             </select>
-            <span style="font-weight:bold; color:#7f8c8d;">▶</span>
+            <span>▶</span>
             <select id="calcTo" onchange="checkHexGuide()">
-                <option value="2" selected data-ko="2진수" data-en="Binary (2)">2진수</option>
-                <option value="8" data-ko="8진수" data-en="Octal (8)">8진수</option>
-                <option value="10" data-ko="10진수" data-en="Decimal (10)">10진수</option>
-                <option value="16" data-ko="16진수" data-en="Hex (16)">16진수</option>
+                <option value="2" selected>2진수</option><option value="8">8진수</option><option value="10">10진수</option><option value="16">16진수</option>
             </select>
         </div>
-
         <div class="input-group">
             <button class="btn-action" data-ko="풀이 애니메이션 보기" data-en="View Animation" onclick="runConversion()">풀이 애니메이션 보기</button>
             <button class="btn-random" data-ko="랜덤 생성" data-en="Random" onclick="randomConversion()">랜덤 생성</button>
         </div>
-
         <div id="calcResult" class="result-box"></div>
         <div id="calcExplanation" class="explanation-box"></div>
     </div>
 
     <div id="tab-complement" class="panel">
-        <h2 data-ko="1의 보수 & 2의 보수 계산기" data-en="1's & 2's Complement Calculator">1의 보수 & 2의 보수 계산기</h2>
-        <p style="text-align:center; color:#7f8c8d; margin-top:-15px;" data-ko="컴퓨터가 음수를 표현하는 방식을 알아봅니다." data-en="Learn how computers represent negative numbers.">컴퓨터가 음수를 표현하는 방식을 알아봅니다.</p>
-
-        <div class="input-group" style="max-width: 400px; margin: 0 auto 20px auto;">
-            <input type="text" id="compInput" data-placeholder-ko="2진수 입력 (예: 0101)" data-placeholder-en="Input Binary (e.g., 0101)" placeholder="2진수 입력 (예: 0101)" oninput="this.value = this.value.replace(/[^01]/g, '')">
+        <h2 data-ko="보수 계산기" data-en="Complement Calculator">보수 계산기</h2>
+        <div class="input-group"><input type="text" id="compInput" placeholder="2진수 입력" oninput="this.value = this.value.replace(/[^01]/g, '')"></div>
+        <div class="input-group">
+            <button class="btn-action" onclick="runComplement()" data-ko="계산" data-en="Calculate">계산</button>
+            <button class="btn-random" onclick="randomComplement()" data-ko="랜덤" data-en="Random">랜덤</button>
         </div>
-        
-        <div class="input-group" style="max-width: 400px; margin: 0 auto;">
-            <button class="btn-action" data-ko="보수 구하기" data-en="Calculate" onclick="runComplement()">보수 구하기</button>
-            <button class="btn-random" data-ko="랜덤 생성" data-en="Random" onclick="randomComplement()">랜덤 생성</button>
-        </div>
-
         <div id="compExplanation" class="explanation-box"></div>
     </div>
 
     <div id="tab-quiz" class="panel">
-        <h2 data-ko="실전 퀴즈 모드" data-en="Practice Quiz Mode">실전 퀴즈 모드</h2>
-        <div style="text-align: center; margin-bottom: 20px;">
-            <button class="btn-action" style="padding: 10px 30px;" data-ko="새로운 문제 받기" data-en="Get New Question" onclick="startQuiz()">새로운 문제 받기</button>
+        <h2 data-ko="실전 퀴즈" data-en="Quiz Mode">실전 퀴즈</h2>
+        <div class="difficulty-selector">
+            <button id="diff-easy" class="diff-btn active" onclick="setDiff('easy')" data-ko="쉬움" data-en="Easy">쉬움</button>
+            <button id="diff-hard" class="diff-btn" onclick="setDiff('hard')" data-ko="어려움" data-en="Hard">어려움</button>
         </div>
-
-        <div id="quizArea" style="display: none;">
-            <div id="quizQuestion" style="font-size: 1.5em; text-align: center; background: #f1f2f6; padding: 20px; border-radius: 8px; font-weight: bold; margin-bottom: 20px;"></div>
-            
-            <div class="input-group" style="max-width: 400px; margin: 0 auto;">
-                <input type="text" id="quizAnswer" data-placeholder-ko="정답 입력" data-placeholder-en="Enter Answer" placeholder="정답 입력" oninput="this.value = this.value.toUpperCase()">
-                <button class="btn-action" style="flex:1;" data-ko="채점" data-en="Submit" onclick="checkQuiz()">채점</button>
+        <div style="text-align: center;"><button class="btn-action" onclick="startQuiz()" data-ko="새로운 문제" data-en="New Question">새로운 문제</button></div>
+        <div id="quizArea" style="display: none; margin-top: 25px;">
+            <div id="quizQuestion" style="font-size: 1.4em; text-align: center; background: #f1f2f6; padding: 20px; border-radius: 8px; font-weight: bold;"></div>
+            <div class="input-group" style="margin-top: 15px;">
+                <input type="text" id="quizAnswer" placeholder="정답 입력" oninput="this.value = this.value.toUpperCase()">
+                <button class="btn-action" onclick="checkQuiz()" data-ko="채점" data-en="Submit">채점</button>
             </div>
-            
-            <div id="quizResult" style="text-align:center; margin-top:20px;"></div>
-            <div id="quizExpArea" class="explanation-box" style="margin-top:15px; border-color:#e74c3c;"></div>
+            <div id="quizResult" style="text-align:center; margin-top:15px;"></div>
+            <div id="quizExpArea" class="explanation-box"></div>
         </div>
     </div>
-
 </div>
 
 <script>
     let currentLang = 'ko';
     let animationTimers = [];
     let currentQuiz = {};
+    let difficulty = 'easy';
 
-    function T(koStr, enStr) {
-        return currentLang === 'ko' ? koStr : enStr;
-    }
+    function T(ko, en) { return currentLang === 'ko' ? ko : en; }
 
     function toggleLanguage() {
         currentLang = currentLang === 'ko' ? 'en' : 'ko';
-        const btn = document.getElementById('langToggleBtn');
-        btn.innerText = currentLang === 'ko' ? 'English' : '한국어';
-
-        document.querySelectorAll('[data-ko]').forEach(el => {
-            el.innerHTML = el.getAttribute(`data-${currentLang}`);
-        });
-        document.querySelectorAll('[data-placeholder-ko]').forEach(el => {
-            el.placeholder = el.getAttribute(`data-placeholder-${currentLang}`);
-        });
-
-        document.getElementById('calcResult').style.display = 'none';
-        document.getElementById('calcExplanation').style.display = 'none';
-        document.getElementById('compExplanation').style.display = 'none';
+        document.getElementById('langToggleBtn').innerText = currentLang === 'ko' ? 'English' : '한국어';
+        document.querySelectorAll('[data-ko]').forEach(el => el.innerHTML = el.getAttribute(`data-${currentLang}`));
         document.getElementById('quizArea').style.display = 'none';
         clearTimers();
     }
 
-    function checkHexGuide() {
-        document.getElementById('calcInput').value = '';
-        const fromBase = document.getElementById('calcFrom').value;
-        const toBase = document.getElementById('calcTo').value;
-        const hexGuide = document.getElementById('hexGuide');
-        if (fromBase === '16' || toBase === '16') {
-            hexGuide.style.display = 'block';
-        } else {
-            hexGuide.style.display = 'none';
-        }
-    }
-
-    function switchTab(tabId) {
+    function switchTab(id) {
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
+        document.getElementById(id).classList.add('active');
         event.target.classList.add('active');
     }
 
-    function getRandomStr(base, length) {
-        const chars = "0123456789ABCDEF".substring(0, base);
-        let res = "";
-        for (let i=0; i<length; i++) {
-            let idx = Math.floor(Math.random() * chars.length);
-            if (i===0 && chars[idx]==='0') idx = 1 + Math.floor(Math.random() * (chars.length-1));
-            res += chars[idx];
-        }
-        return res;
+    function setDiff(val) {
+        difficulty = val;
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`diff-${val}`).classList.add('active');
     }
 
-    function clearTimers() {
-        animationTimers.forEach(t => clearTimeout(t));
-        animationTimers = [];
-    }
+    function clearTimers() { animationTimers.forEach(t => clearTimeout(t)); animationTimers = []; }
 
     function playAnimations(containerId, onComplete) {
         const container = document.getElementById(containerId);
         const elements = container.querySelectorAll('.anim-step');
         let delay = 0;
         elements.forEach((el, index) => {
-            let timer = setTimeout(() => {
+            let t = setTimeout(() => {
                 el.classList.add('visible');
-                if (index === elements.length - 1 && onComplete) {
-                    setTimeout(onComplete, 400);
-                }
+                if (index === elements.length - 1 && onComplete) setTimeout(onComplete, 400);
             }, delay);
-            animationTimers.push(timer);
-            delay += (el.tagName === 'TR') ? 300 : 500;
+            animationTimers.push(t);
+            delay += (el.tagName === 'TR') ? 250 : 450;
         });
-    }
-
-    function randomConversion() {
-        const fromBase = parseInt(document.getElementById('calcFrom').value);
-        const len = Math.floor(Math.random() * 3) + 2;
-        document.getElementById('calcInput').value = getRandomStr(fromBase, len);
-    }
-
-    function getDirectConversionHTML(numStr, fromBase, toBase) {
-        let bitSize = (fromBase === 16 || toBase === 16) ? 4 : 3;
-        let html = `<div class="anim-step"><h3 style="color:#8e44ad;">${T("지름길 방식 (10진수를 거치지 않는 다이렉트 변환)", "Shortcut Method (Direct Conversion without Base 10)")}</h3>`;
-        html += `<p>${T(`2진수와 ${fromBase===2?toBase:fromBase}진수는 서로 <b>$2^${bitSize}$</b> 관계이므로, <b>${bitSize}개씩 비트를 묶거나 쪼개서</b> 바로 변환할 수 있습니다.`, `Base 2 and Base ${fromBase===2?toBase:fromBase} have a <b>$2^${bitSize}$</b> relationship, so you can convert directly by <b>grouping or splitting bits by ${bitSize}</b>.`)}</p></div>`;
-
-        let finalResult = "";
-
-        if (fromBase === 2) {
-            let padded = numStr;
-            while (padded.length % bitSize !== 0) padded = "0" + padded; 
-            
-            html += `<div class="anim-step direct-box">`;
-            html += `<div>${T(`1. 맨 뒤에서부터 ${bitSize}자리씩 끊어줍니다. (부족한 앞자리는 0 추가)`, `1. Group bits by ${bitSize} from right to left. (Pad with 0s if needed)`)}</div>`;
-            
-            let chunks = [];
-            for (let i=0; i<padded.length; i+=bitSize) {
-                chunks.push(padded.substring(i, i+bitSize));
-            }
-            
-            html += `<div>` + chunks.map(c => `<span class="bit-group" style="background:#e8f6f3; border-color:#1abc9c; color:#16a085;">${c}</span>`).join(" ") + `</div>`;
-            html += `<div class="arrow-down">${T(`▼ 각 묶음을 ${toBase}진수로 변환 ▼`, `▼ Convert each group to Base ${toBase} ▼`)}</div>`;
-            
-            let resChunks = chunks.map(c => parseInt(c, 2).toString(toBase).toUpperCase());
-            html += `<div>` + resChunks.map(c => `<span class="bit-group">${c}</span>`).join(" ") + `</div>`;
-            html += `</div>`;
-            
-            finalResult = resChunks.join("");
-        } else {
-            html += `<div class="anim-step direct-box">`;
-            html += `<div>${T(`1. ${fromBase}진수 각 자리를 독립적인 ${bitSize}자리 2진수로 쪼갭니다.`, `1. Split each Base ${fromBase} digit into a ${bitSize}-bit binary number.`)}</div>`;
-            html += `<div>` + numStr.split('').map(c => `<span class="bit-group">${c}</span>`).join(" ") + `</div>`;
-            html += `<div class="arrow-down">${T(`▼ 2진수 ${bitSize}자리로 변환 ▼`, `▼ Convert to ${bitSize}-bit binary ▼`)}</div>`;
-            
-            let resChunks = numStr.split('').map(c => {
-                let bin = parseInt(c, fromBase).toString(2);
-                while (bin.length < bitSize) bin = "0" + bin;
-                return bin;
-            });
-            
-            html += `<div>` + resChunks.map(c => `<span class="bit-group" style="background:#e8f6f3; border-color:#1abc9c; color:#16a085;">${c}</span>`).join(" ") + `</div>`;
-            html += `</div>`;
-            
-            finalResult = resChunks.join("").replace(/^0+/, ''); 
-            if(finalResult==="") finalResult="0";
-        }
-
-        html += `<div class="anim-step"><p style="text-align:center;">${T("그대로 이어 붙이면 완성", "Concatenate them for the final result")}<br><span class="highlight" style="font-size:1.3em;">${finalResult}<sub>(${toBase})</sub></span></p></div>`;
-        return { html, finalResult };
-    }
-
-    function getStandardConversionHTML(numStr, fromBase, toBase) {
-        let decValue = 0;
-        let html = "";
-        let finalResult = "";
-
-        if (fromBase !== 10) {
-            html += `<div class="anim-step"><div class="step-title">${T(`1단계: ${fromBase}진수 ➔ 10진수`, `Step 1: Base ${fromBase} ➔ Base 10`)}</div>`;
-            html += `<p>${T("각 자리에 가중치(거듭제곱)를 곱하여 모두 더합니다.", "Multiply each digit by its positional weight (power) and sum them up.")}</p>`;
-            let len = numStr.length;
-            let sumStr = ""; let calcStr = "";
-            for (let i = 0; i < len; i++) {
-                let dVal = parseInt(numStr[i], fromBase);
-                let power = len - 1 - i;
-                let term = dVal * Math.pow(fromBase, power);
-                decValue += term;
-                let disp = (fromBase===16 && dVal>=10) ? `${numStr[i]}(${dVal})` : numStr[i];
-                sumStr += `${disp} &times; ${fromBase}<sup>${power}</sup>`;
-                calcStr += term;
-                if (i < len - 1) { sumStr += " + "; calcStr += " + "; }
-            }
-            html += `<p class="highlight">${T("계산식:", "Formula:")} ${sumStr}</p><p>➔ ${calcStr} = <strong>${decValue}<sub>(10)</sub></strong></p></div>`;
-            html += `<hr style="border:0; border-top:1px dashed #ccc; margin: 20px 0;">`;
-        } else {
-            decValue = parseInt(numStr, 10);
-        }
-
-        if (toBase !== 10) {
-            html += `<div class="anim-step"><div class="step-title">${fromBase !== 10 ? T('2단계: ', 'Step 2: ') : ''}${T(`10진수 ➔ ${toBase}진수`, `Base 10 ➔ Base ${toBase}`)}</div>`;
-            html += `<p>${T("몫이 0이 될 때까지 나누고, <strong>나머지를 역순(밑에서 위로)</strong>으로 읽습니다.", "Divide until the quotient is 0, and read the <strong>remainders in reverse (bottom to top)</strong>.")}</p></div>`;
-            if (decValue === 0) {
-                html += `<div class="anim-step"><p>${T("결과:", "Result:")} <strong>0<sub>(${toBase})</sub></strong></p></div>`;
-                finalResult = "0";
-            } else {
-                let temp = decValue; let steps = [];
-                while (temp >= toBase) {
-                    let r = temp % toBase; let q = Math.floor(temp / toBase);
-                    steps.push({d: temp, r: r}); temp = q;
-                }
-                html += `<div class="anim-step" style="display:flex; justify-content:center;"><table class="math-table">`;
-                for (let i = 0; i < steps.length; i++) {
-                    html += `<tr class="anim-step"><td style="text-align:right;">${toBase}</td><td class="math-border">${steps[i].d}</td>`;
-                    if(i===0) html += `<td></td></tr>`;
-                    else {
-                        let pr = steps[i-1].r.toString(16).toUpperCase();
-                        let dsp = (toBase===16 && steps[i-1].r>=10) ? `${steps[i-1].r}➔${pr}` : pr;
-                        html += `<td class="remainder">... ${dsp}</td></tr>`;
-                    }
-                }
-                let lastR = steps.length>0 ? steps[steps.length-1].r.toString(16).toUpperCase() : "";
-                if(toBase===16 && steps.length>0 && steps[steps.length-1].r>=10) lastR = `${steps[steps.length-1].r}➔` + lastR;
-                let fQ = temp.toString(16).toUpperCase();
-                html += `<tr class="anim-step"><td></td><td class="final-quotient">${fQ}</td>`;
-                if(steps.length>0) html += `<td class="remainder">... ${lastR}</td>`;
-                html += `</tr></table></div>`;
-                
-                let resStr = fQ + steps.map(s => s.r.toString(16).toUpperCase()).reverse().join('');
-                html += `<div class="anim-step" style="text-align:center; margin-top:15px;"><p>${T("마지막 몫(", "Read upward from the last quotient (")}<span style="color:#27ae60;">${fQ}</span>${T(")부터 위로 읽기", ")")}<br><span class="highlight" style="font-size:1.3em;">${resStr}<sub>(${toBase})</sub></span></p></div>`;
-                finalResult = resStr;
-            }
-        } else {
-            finalResult = decValue.toString();
-        }
-        return { html, finalResult };
     }
 
     function runConversion() {
-        const numStr = document.getElementById('calcInput').value.trim();
-        const fromBase = parseInt(document.getElementById('calcFrom').value);
-        const toBase = parseInt(document.getElementById('calcTo').value);
-        const expBox = document.getElementById('calcExplanation');
-        const resBox = document.getElementById('calcResult');
-
-        if (!numStr) return alert(T("숫자를 입력하세요.", "Please enter a number."));
-        const validRegex = new RegExp(`^[${"0123456789ABCDEF".substring(0, fromBase)}]+$`);
-        if (!validRegex.test(numStr)) return alert(T(`올바른 ${fromBase}진수 숫자가 아닙니다.`, `Invalid Base ${fromBase} number.`));
-
+        const num = document.getElementById('calcInput').value.trim();
+        const from = parseInt(document.getElementById('calcFrom').value);
+        const to = parseInt(document.getElementById('calcTo').value);
+        const exp = document.getElementById('calcExplanation');
+        const res = document.getElementById('calcResult');
+        if(!num) return;
         clearTimers();
-        resBox.style.display = "none";
-        expBox.style.display = "block";
-
-        let resultData;
-        if (fromBase === toBase) {
-            resultData = { html: `<div class="anim-step"><p>${T("동일한 진법입니다.", "Same base selected.")}</p></div>`, finalResult: numStr };
-        } else if ((fromBase===2 && (toBase===8||toBase===16)) || ((fromBase===8||fromBase===16) && toBase===2)) {
-            resultData = getDirectConversionHTML(numStr, fromBase, toBase);
-        } else {
-            resultData = getStandardConversionHTML(numStr, fromBase, toBase);
-        }
-
-        expBox.innerHTML = resultData.html;
+        res.style.display = 'none'; exp.style.display = 'block';
+        let data = (from===to) ? {html: `<p>Same base.</p>`, finalResult: num} : 
+                   (((from===2&&(to===8||to===16))||((from===8||from===16)&&to===2))) ? getDirectHTML(num, from, to) : getStandardHTML(num, from, to);
+        exp.innerHTML = data.html;
         playAnimations('calcExplanation', () => {
-            resBox.innerHTML = `${T("최종 결과: ", "Final Result: ")}<span style="color:var(--accent);">${resultData.finalResult} <sub>(${toBase})</sub></span>`;
-            resBox.style.display = "block";
+            res.innerHTML = `${T("최종 결과: ", "Result: ")} ${data.finalResult} (${to})`;
+            res.style.display = 'block';
         });
     }
 
-    function randomComplement() {
-        document.getElementById('compInput').value = getRandomStr(2, 4 + Math.floor(Math.random()*4));
+    function getDirectHTML(num, from, to) {
+        let size = (from===16||to===16) ? 4 : 3;
+        let html = `<div class="anim-step"><h3>${T("지름길 방식", "Shortcut Method")}</h3><p>${T("비트를 그룹화하여 직접 변환합니다.", "Convert directly by grouping bits.")}</p></div>`;
+        let result = "";
+        if(from===2) {
+            let p = num; while(p.length%size!==0) p = "0"+p;
+            let chunks = []; for(let i=0; i<p.length; i+=size) chunks.push(p.substring(i, i+size));
+            html += `<div class="anim-step direct-box"><div>` + chunks.map(c => `<span class="bit-group">${c}</span>`).join(" ") + `</div><div style="margin:10px">▼</div>`;
+            let resC = chunks.map(c => parseInt(c, 2).toString(to).toUpperCase());
+            html += `<div>` + resC.map(c => `<span class="bit-group" style="background:#d1f2eb">${c}</span>`).join(" ") + `</div></div>`;
+            result = resC.join("");
+        } else {
+            let resC = num.split('').map(c => { let b = parseInt(c, from).toString(2); while(b.length<size) b="0"+b; return b; });
+            html += `<div class="anim-step direct-box"><div>` + num.split('').map(c => `<span class="bit-group">${c}</span>`).join(" ") + `</div><div style="margin:10px">▼</div>`;
+            html += `<div>` + resC.map(c => `<span class="bit-group" style="background:#d1f2eb">${c}</span>`).join(" ") + `</div></div>`;
+            result = resC.join("").replace(/^0+/, '') || "0";
+        }
+        return {html, finalResult: result};
     }
 
-    function runComplement() {
-        const binStr = document.getElementById('compInput').value.trim();
-        const expBox = document.getElementById('compExplanation');
-        if (!binStr) return alert(T("2진수를 입력하세요.", "Please enter a binary number."));
-        if (/[^01]/.test(binStr)) return alert(T("2진수는 0과 1만 입력 가능합니다.", "Binary must contain only 0 and 1."));
-
-        clearTimers();
-        expBox.style.display = "block";
-
-        let html = `<h3 style="text-align:center;">${T("음수 표현 (보수 계산 과정)", "Negative Number Representation (Complement)")}</h3>`;
-        
-        let ones = binStr.split('').map(c => c==='0'?'1':'0').join('');
-        html += `<div class="anim-step">
-                    <div class="step-title">${T("Step 1. 1의 보수 구하기 (비트 반전)", "Step 1. 1's Complement (Bit Inversion)")}</div>
-                    <p>${T("0은 1로, 1은 0으로 모두 뒤집어 줍니다.", "Flip all 0s to 1s and 1s to 0s.")}</p>
-                    <table class="data-table">
-                        <tr><th>${T("입력값", "Input")}</th><td>${binStr.split('').join(' ')}</td></tr>
-                        <tr><th>${T("1의 보수", "1's Comp")}</th><td class="highlight-text" style="color:#e67e22;">${ones.split('').join(' ')}</td></tr>
-                    </table>
-                 </div>`;
-
-        let twosArr = ones.split('');
-        let carry = 1;
-        for (let i = twosArr.length - 1; i >= 0; i--) {
-            if (twosArr[i] === '1' && carry === 1) { twosArr[i] = '0'; carry = 1; }
-            else if (twosArr[i] === '0' && carry === 1) { twosArr[i] = '1'; carry = 0; }
-        }
-        let twos = twosArr.join('');
-
-        html += `<div class="anim-step">
-                    <div class="step-title">${T("Step 2. 2의 보수 구하기 (1 더하기)", "Step 2. 2's Complement (Add 1)")}</div>
-                    <p>${T("컴퓨터가 실제로 음수를 저장하는 방식입니다. 1의 보수 맨 끝자리에 1을 더합니다.", "How computers store negative numbers. Add 1 to the 1's complement.")}</p>
-                    <div style="font-family:monospace; font-size:1.5em; text-align:center; background:#fff; padding:20px; border-radius:8px; border:1px solid #ccc; width:fit-content; margin:0 auto;">
-                        <div style="letter-spacing:5px;">&nbsp;&nbsp;${ones}</div>
-                        <div style="letter-spacing:5px; border-bottom:2px solid #333; padding-bottom:5px;">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1</div>
-                        <div style="letter-spacing:5px; margin-top:10px; color:var(--success); font-weight:bold;">= ${twos}</div>
-                    </div>
-                 </div>`;
-
-        html += `<div class="anim-step result-box" style="display:block; margin-top:20px;">
-                    ${T(`입력값 [${binStr}]의 최종 2의 보수는<br><span style="color:#c0392b; font-size:1.2em;">${twos}</span> 입니다.`, `The final 2's complement of [${binStr}] is<br><span style="color:#c0392b; font-size:1.2em;">${twos}</span>.`)}
-                 </div>`;
-
-        expBox.innerHTML = html;
-        playAnimations('compExplanation');
+    function getStandardHTML(num, from, to) {
+        let dec = 0, html = "", res = "";
+        if(from!==10) {
+            html += `<div class="anim-step"><div class="step-title">Step 1: ${from} ➔ 10</div>`;
+            let len = num.length, sumS = "", calcS = "";
+            for(let i=0; i<len; i++) {
+                let d = parseInt(num[i], from), p = len-1-i, v = d * Math.pow(from, p); dec += v;
+                sumS += `${num[i]}&times;${from}<sup>${p}</sup>` + (i<len-1?" + ":"");
+            }
+            html += `<p class="highlight">${sumS}</p><p>= ${dec}</p></div>`;
+        } else dec = parseInt(num, 10);
+        if(to!==10) {
+            html += `<div class="anim-step"><div class="step-title">Step 2: 10 ➔ ${to}</div>`;
+            let t = dec, steps = []; while(t>=to) { steps.push({d:t, r:t%to}); t = Math.floor(t/to); }
+            html += `<table class="math-table">`;
+            steps.forEach(s => html += `<tr><td>${to}</td><td class="math-border">${s.d}</td><td class="remainder">... ${s.r.toString(16).toUpperCase()}</td></tr>`);
+            let fQ = t.toString(16).toUpperCase();
+            html += `<tr><td></td><td class="final-quotient">${fQ}</td><td></td></tr></table></div>`;
+            res = fQ + steps.map(s => s.r.toString(16).toUpperCase()).reverse().join('');
+        } else res = dec.toString();
+        return {html, finalResult: res};
     }
 
     function startQuiz() {
-        const bases = [2, 8, 10, 16];
-        let from = bases[Math.floor(Math.random()*4)];
-        let to = bases[Math.floor(Math.random()*4)];
-        while(from===to) to = bases[Math.floor(Math.random()*4)];
-        
-        let len = (from===2) ? Math.floor(Math.random()*3)+3 : Math.floor(Math.random()*2)+2;
-        let numStr = getRandomStr(from, len);
-
-        let ansData;
-        if ((from===2 && (to===8||to===16)) || ((from===8||from===16) && to===2)) {
-            ansData = getDirectConversionHTML(numStr, from, to);
-        } else {
-            ansData = getStandardConversionHTML(numStr, from, to);
-        }
-
-        currentQuiz = { q: numStr, from: from, to: to, ans: ansData.finalResult, html: ansData.html };
-
+        const bs = [2, 8, 10, 16];
+        let f = bs[Math.floor(Math.random()*4)], t = bs[Math.floor(Math.random()*4)];
+        while(f===t) t = bs[Math.floor(Math.random()*4)];
+        let len = (difficulty==='easy') ? (f===2?4:2) : (f===2?8:4);
+        let n = getRandomStr(f, len);
+        let data = ((((f===2&&(t===8||t===16))||((f===8||f===16)&&t===2)))) ? getDirectHTML(n, f, t) : getStandardHTML(n, f, t);
+        currentQuiz = { q: n, f, t, a: data.finalResult, h: data.html };
         document.getElementById('quizArea').style.display = 'block';
-        document.getElementById('quizQuestion').innerHTML = `<span style="color:#7f8c8d; font-size:0.7em;">${T(`${from}진수를 ${to}진수로 변환하세요.`, `Convert Base ${from} to Base ${to}.`)}</span><br><br>${numStr} <sub>(${from})</sub> &rarr; ? <sub>(${to})</sub>`;
+        document.getElementById('quizQuestion').innerHTML = `${n} (${f}) ➔ ? (${t})`;
         document.getElementById('quizAnswer').value = '';
         document.getElementById('quizResult').innerHTML = '';
         document.getElementById('quizExpArea').style.display = 'none';
-        document.getElementById('quizExpArea').innerHTML = '';
     }
 
     function checkQuiz() {
-        const user = document.getElementById('quizAnswer').value.trim().toUpperCase();
-        if(!user) return alert(T("정답을 입력하세요.", "Please enter an answer."));
-
-        const resDiv = document.getElementById('quizResult');
-        const expDiv = document.getElementById('quizExpArea');
-
-        if(user === currentQuiz.ans) {
-            resDiv.innerHTML = `<span class="feedback-correct">${T("정답입니다! 완벽해요!", "Correct! Perfect!")}</span>`;
-            expDiv.style.display = 'none';
+        const u = document.getElementById('quizAnswer').value.trim().toUpperCase();
+        const rDiv = document.getElementById('quizResult');
+        const eDiv = document.getElementById('quizExpArea');
+        eDiv.style.display = 'block';
+        eDiv.innerHTML = `<h3 style="margin-top:0">${T("상세 풀이 과정", "Step-by-Step Solution")}</h3>` + currentQuiz.h.replace(/anim-step/g, 'visible');
+        if(u === currentQuiz.a) {
+            rDiv.innerHTML = `<span style="color:var(--success); font-size:1.5em; font-weight:bold;">O ${T("정답입니다!", "Correct!")}</span>`;
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         } else {
-            resDiv.innerHTML = `<span class="feedback-wrong">${T(`오답입니다. (정답: ${currentQuiz.ans})`, `Incorrect. (Answer: ${currentQuiz.ans})`)}</span>`;
-            expDiv.innerHTML = `<h3 style="color:#c0392b; margin-top:0;">${T("오답 풀이 확인", "Review Solution")}</h3>` + currentQuiz.html.replace(/anim-step/g, '').replace(/opacity: 0;/g, '');
-            expDiv.style.display = 'block';
+            rDiv.innerHTML = `<span style="color:var(--accent); font-size:1.5em; font-weight:bold;">X ${T("오답입니다", "Incorrect")}</span><br>${T("정답은", "The answer is")} <b>${currentQuiz.a}</b>`;
         }
     }
-</script>
 
+    function getRandomStr(b, l) {
+        const c = "0123456789ABCDEF".substring(0, b);
+        let r = ""; for(let i=0; i<l; i++) {
+            let idx = Math.floor(Math.random()*c.length);
+            if(i===0 && c[idx]==='0') idx = 1 + Math.floor(Math.random()*(c.length-1));
+            r += c[idx];
+        } return r;
+    }
+
+    function runComplement() {
+        const bin = document.getElementById('compInput').value.trim();
+        const exp = document.getElementById('compExplanation');
+        if(!bin) return;
+        clearTimers(); exp.style.display = 'block';
+        let ones = bin.split('').map(c => c==='0'?'1':'0').join('');
+        let tA = ones.split(''), carry = 1;
+        for(let i=tA.length-1; i>=0; i--) { if(tA[i]==='1'&&carry===1) {tA[i]='0';} else if(tA[i]==='0'&&carry===1) {tA[i]='1'; carry=0;} }
+        let twos = tA.join('');
+        exp.innerHTML = `<div class="anim-step"><div class="step-title">1's Comp</div><p>${ones}</p></div>
+                         <div class="anim-step"><div class="step-title">2's Comp (1's + 1)</div><p>${twos}</p></div>`;
+        playAnimations('compExplanation');
+    }
+
+    function randomComplement() { document.getElementById('compInput').value = getRandomStr(2, 4); }
+    function checkHexGuide() {
+        const f = document.getElementById('calcFrom').value, t = document.getElementById('calcTo').value;
+        document.getElementById('hexGuide').style.display = (f==='16'||t==='16') ? 'block' : 'none';
+    }
+</script>
 </body>
 </html>
