@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>컴퓨터 구조 완전 정복 (진법 & 보수)</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            background-color: #e0e6ed;
+            color: var(--primary);
+            border: none;
+            border-radius: 12px 12px 0 0;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+            background-color: var(--card-bg);
+            color: var(--secondary);
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--secondary);
+        }
+        .tab-btn:hover:not(.active) {
+            background-color: #d1d8e0;
+        }
+
+        .panel {
+            background-color: var(--card-bg);
+            padding: 35px;
+            border-radius: 0 12px 12px 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .panel.active {
+            display: block;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+        input, select, button {
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        input:focus, select:focus {
+            border-color: var(--secondary);
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            font-weight: bold;
+            font-size: 1.2em;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+        
+        .btn-action {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 2;
+            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.2);
+        }
+        .btn-action:hover { background-color: #2980b9; transform: translateY(-2px); }
+        .btn-action:active { transform: translateY(0); }
+        
+        .btn-random {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .btn-random:hover { background-color: #d68910; }
+
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #e8f6f3, #d1f2eb);
+            border-radius: 10px;
+            font-size: 1.4em;
+            text-align: center;
+            font-weight: bold;
+            color: #117864;
+            display: none;
+        }
+
+        .explanation-box {
+            margin-top: 25px;
+            padding: 25px;
+            background-color: #fafbfc;
+            border: 1px solid #dcdde1;
+            border-radius: 12px;
+            display: none;
+            line-height: 1.7;
+        }
+
+        .step-title {
+            color: #2980b9;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            background-color: #eaf2f8;
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            text-align: center;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #dcdde1;
+            padding: 10px;
+        }
+        .data-table th { background-color: #f1f2f6; color: var(--primary); }
+        .data-table .highlight-text { font-weight: bold; color: var(--accent); font-size: 1.2em; }
+
+        .direct-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            font-size: 1.3em;
+            font-family: monospace;
+        }
+        .bit-group {
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 0 5px;
+            background: #fff3cd;
+            border: 2px solid #f1c40f;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #d35400;
+        }
+        .arrow-down { color: var(--secondary); font-size: 1.5em; margin: 10px 0; }
+
+        .math-table { border-collapse: collapse; font-family: monospace; font-size: 1.3em; margin: 0 auto; }
+        .math-table td { padding: 5px 8px; }
+        .math-border { border-left: 2px solid var(--primary); border-bottom: 2px solid var(--primary); text-align: right; padding-right: 15px !important; padding-left: 10px !important; width: 60px; }
+        .remainder { color: var(--accent); padding-left: 15px !important; font-weight: bold; }
+        .final-quotient { color: var(--success); font-weight: bold; text-align: right; padding-right: 15px !important; }
+
+        .highlight { background-color: #fff3cd; padding: 3px 6px; border-radius: 4px; font-weight: bold; color: #d35400; }
+
+        .feedback-correct { color: var(--success); font-weight: bold; font-size: 1.2em; }
+        .feedback-wrong { color: var(--accent); font-weight: bold; font-size: 1.2em; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-step { opacity: 0; transform: translateY(15px); transition: all 0.5s ease-out; }
+        .anim-step.visible { opacity: 1; transform: translateY(0); }
+        tr.anim-step { transform: none; }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('tab-convert')">진법 변환</button>
+        <button class="tab-btn" onclick="switchTab('tab-complement')">보수 계산</button>
+        <button class="tab-btn" onclick="switchTab('tab-quiz')">실전 퀴즈</button>
+    </div>
+
+    <div id="tab-convert" class="panel active">
+        <h2>진법 변환기</h2>
+        
+        <div class="input-group">
+            <input type="text" id="calcInput" placeholder="숫자 입력 (예: 1011, 1F)" oninput="this.value = this.value.toUpperCase()">
+        </div>
+        
+        <div class="input-group">
+            <select id="calcFrom" onchange="document.getElementById('calcInput').value=''">
+                <option value="2">2진수</option>
+                <option value="8">8진수</option>
+                <option value="10" selected>10진수</option>
+                <option value="16">16진수</option>
+            </select>
+            <span style="font-weight:bold; color:#7f8c8d;">▶</span>
+            <select id="calcTo" onchange="document.getElementById('calcInput').value=''">
+                <option value="2" selected>2진수</option>
+                <option value="8">8진수</option>
+                <option value="10">10진수</option>
+                <option value="16">16진수</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <button class="btn-action" onclick="runConversion()">풀이 애니메이션 보기</button>
+            <button class="btn-random" onclick="randomConversion()">랜덤 생성</button>
+        </div>
+
+        <div id="calcResult" class="result-box"></div>
+        <div id="calcExplanation" class="explanation-box"></div>
+    </div>
+
+    <div id="tab-complement" class="panel">
+        <h2>1의 보수 & 2의 보수 계산기</h2>
+        <p style="text-align:center; color:#7f8c8d; margin-top:-15px;">컴퓨터가 음수를 표현하는 방식을 알아봅니다.</p>
+
+        <div class="input-group" style="max-width: 400px; margin: 0 auto 20px auto;">
+            <input type="text" id="compInput" placeholder="2진수 입력 (예: 0101)" oninput="this.value = this.value.replace(/[^01]/g, '')">
+        </div>
+        
+        <div class="input-group" style="max-width: 400px; margin: 0 auto;">
+            <button class="btn-action" onclick="runComplement()">보수 구하기</button>
+            <button class="btn-random" onclick="randomComplement()">랜덤</button>
+        </div>
+
+        <div id="compExplanation" class="explanation-box"></div>
+    </div>
+
+    <div id="tab-quiz" class="panel">
+        <h2>실전 퀴즈 모드</h2>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button class="btn-action" style="padding: 10px 30px;" onclick="startQuiz()">새로운 랜덤 문제 받기</button>
+        </div>
+
+        <div id="quizArea" style="display: none;">
+            <div id="quizQuestion" style="font-size: 1.5em; text-align: center; background: #f1f2f6; padding: 20px; border-radius: 8px; font-weight: bold; margin-bottom: 20px;"></div>
+            
+            <div class="input-group" style="max-width: 400px; margin: 0 auto;">
+                <input type="text" id="quizAnswer" placeholder="정답 입력" oninput="this.value = this.value.toUpperCase()">
+                <button class="btn-action" style="flex:1;" onclick="checkQuiz()">채점</button>
+            </div>
+            
+            <div id="quizResult" style="text-align:center; margin-top:20px;"></div>
+            <div id="quizExpArea" class="explanation-box" style="margin-top:15px; border-color:#e74c3c;"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let animationTimers = [];
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    function getRandomStr(base, length) {
+        const chars = "0123456789ABCDEF".substring(0, base);
+        let res = "";
+        for (let i=0; i<length; i++) {
+            let idx = Math.floor(Math.random() * chars.length);
+            if (i===0 && chars[idx]==='0') idx = 1 + Math.floor(Math.random() * (chars.length-1));
+            res += chars[idx];
+        }
+        return res;
+    }
+
+    function clearTimers() {
+        animationTimers.forEach(t => clearTimeout(t));
+        animationTimers = [];
+    }
+
+    function playAnimations(containerId, onComplete) {
+        const container = document.getElementById(containerId);
+        const elements = container.querySelectorAll('.anim-step');
+        let delay = 0;
+        elements.forEach((el, index) => {
+            let timer = setTimeout(() => {
+                el.classList.add('visible');
+                if (index === elements.length - 1 && onComplete) {
+                    setTimeout(onComplete, 400);
+                }
+            }, delay);
+            animationTimers.push(timer);
+            delay += (el.tagName === 'TR') ? 300 : 500;
+        });
+    }
+
+    function randomConversion() {
+        const fromBase = parseInt(document.getElementById('calcFrom').value);
+        const len = Math.floor(Math.random() * 3) + 2;
+        document.getElementById('calcInput').value = getRandomStr(fromBase, len);
+    }
+
+    function getDirectConversionHTML(numStr, fromBase, toBase) {
+        let bitSize = (fromBase === 16 || toBase === 16) ? 4 : 3;
+        let html = `<div class="anim-step"><h3 style="color:#8e44ad;">지름길 방식 (10진수를 거치지 않는 다이렉트 변환)</h3>`;
+        html += `<p>2진수와 ${fromBase===2?toBase:fromBase}진수는 서로 <b>$2^${bitSize}$</b> 관계이므로, <b>${bitSize}개씩 비트를 묶거나 쪼개서</b> 바로 변환할 수 있습니다.</p></div>`;
+
+        let finalResult = "";
+
+        if (fromBase === 2) {
+            let padded = numStr;
+            while (padded.length % bitSize !== 0) padded = "0" + padded; 
+            
+            html += `<div class="anim-step direct-box">`;
+            html += `<div>1. 맨 뒤에서부터 ${bitSize}자리씩 끊어줍니다. (부족한 앞자리는 0 추가)</div>`;
+            
+            let chunks = [];
+            for (let i=0; i<padded.length; i+=bitSize) {
+                chunks.push(padded.substring(i, i+bitSize));
+            }
+            
+            html += `<div>` + chunks.map(c => `<span class="bit-group" style="background:#e8f6f3; border-color:#1abc9c; color:#16a085;">${c}</span>`).join(" ") + `</div>`;
+            html += `<div class="arrow-down">▼ 각 묶음을 ${toBase}진수로 변환 ▼</div>`;
+            
+            let resChunks = chunks.map(c => parseInt(c, 2).toString(toBase).toUpperCase());
+            html += `<div>` + resChunks.map(c => `<span class="bit-group">${c}</span>`).join(" ") + `</div>`;
+            html += `</div>`;
+            
+            finalResult = resChunks.join("");
+        } else {
+            html += `<div class="anim-step direct-box">`;
+            html += `<div>1. ${fromBase}진수 각 자리를 독립적인 ${bitSize}자리 2진수로 쪼갭니다.</div>`;
+            html += `<div>` + numStr.split('').map(c => `<span class="bit-group">${c}</span>`).join(" ") + `</div>`;
+            html += `<div class="arrow-down">▼ 2진수 ${bitSize}자리로 변환 ▼</div>`;
+            
+            let resChunks = numStr.split('').map(c => {
+                let bin = parseInt(c, fromBase).toString(2);
+                while (bin.length < bitSize) bin = "0" + bin;
+                return bin;
+            });
+            
+            html += `<div>` + resChunks.map(c => `<span class="bit-group" style="background:#e8f6f3; border-color:#1abc9c; color:#16a085;">${c}</span>`).join(" ") + `</div>`;
+            html += `</div>`;
+            
+            finalResult = resChunks.join("").replace(/^0+/, ''); 
+            if(finalResult==="") finalResult="0";
+        }
+
+        html += `<div class="anim-step"><p style="text-align:center;">그대로 이어 붙이면 완성<br><span class="highlight" style="font-size:1.3em;">${finalResult}<sub>(${toBase})</sub></span></p></div>`;
+        return { html, finalResult };
+    }
+
+    function getStandardConversionHTML(numStr, fromBase, toBase) {
+        let decValue = 0;
+        let html = "";
+        let finalResult = "";
+
+        if (fromBase !== 10) {
+            html += `<div class="anim-step"><div class="step-title">1단계: ${fromBase}진수 ➔ 10진수</div>`;
+            html += `<p>각 자리에 가중치(${fromBase}의 거듭제곱)를 곱하여 모두 더합니다.</p>`;
+            let len = numStr.length;
+            let sumStr = ""; let calcStr = "";
+            for (let i = 0; i < len; i++) {
+                let dVal = parseInt(numStr[i], fromBase);
+                let power = len - 1 - i;
+                let term = dVal * Math.pow(fromBase, power);
+                decValue += term;
+                let disp = (fromBase===16 && dVal>=10) ? `${numStr[i]}(${dVal})` : numStr[i];
+                sumStr += `${disp} &times; ${fromBase}<sup>${power}</sup>`;
+                calcStr += term;
+                if (i < len - 1) { sumStr += " + "; calcStr += " + "; }
+            }
+            html += `<p class="highlight">계산식: ${sumStr}</p><p>➔ ${calcStr} = <strong>${decValue}<sub>(10)</sub></strong></p></div>`;
+            html += `<hr style="border:0; border-top:1px dashed #ccc; margin: 20px 0;">`;
+        } else {
+            decValue = parseInt(numStr, 10);
+        }
+
+        if (toBase !== 10) {
+            html += `<div class="anim-step"><div class="step-title">${fromBase !== 10 ? '2단계: ' : ''}10진수 ➔ ${toBase}진수</div>`;
+            html += `<p>몫이 0이 될 때까지 나누고, <strong>나머지를 역순(밑에서 위로)</strong>으로 읽습니다.</p></div>`;
+            if (decValue === 0) {
+                html += `<div class="anim-step"><p>결과: <strong>0<sub>(${toBase})</sub></strong></p></div>`;
+                finalResult = "0";
+            } else {
+                let temp = decValue; let steps = [];
+                while (temp >= toBase) {
+                    let r = temp % toBase; let q = Math.floor(temp / toBase);
+                    steps.push({d: temp, r: r}); temp = q;
+                }
+                html += `<div class="anim-step" style="display:flex; justify-content:center;"><table class="math-table">`;
+                for (let i = 0; i < steps.length; i++) {
+                    html += `<tr class="anim-step"><td style="text-align:right;">${toBase}</td><td class="math-border">${steps[i].d}</td>`;
+                    if(i===0) html += `<td></td></tr>`;
+                    else {
+                        let pr = steps[i-1].r.toString(16).toUpperCase();
+                        let dsp = (toBase===16 && steps[i-1].r>=10) ? `${steps[i-1].r}➔${pr}` : pr;
+                        html += `<td class="remainder">... ${dsp}</td></tr>`;
+                    }
+                }
+                let lastR = steps.length>0 ? steps[steps.length-1].r.toString(16).toUpperCase() : "";
+                if(toBase===16 && steps.length>0 && steps[steps.length-1].r>=10) lastR = `${steps[steps.length-1].r}➔` + lastR;
+                let fQ = temp.toString(16).toUpperCase();
+                html += `<tr class="anim-step"><td></td><td class="final-quotient">${fQ}</td>`;
+                if(steps.length>0) html += `<td class="remainder">... ${lastR}</td>`;
+                html += `</tr></table></div>`;
+                
+                let resStr = fQ + steps.map(s => s.r.toString(16).toUpperCase()).reverse().join('');
+                html += `<div class="anim-step" style="text-align:center; margin-top:15px;"><p>마지막 몫(<span style="color:#27ae60;">${fQ}</span>)부터 위로 읽기<br><span class="highlight" style="font-size:1.3em;">${resStr}<sub>(${toBase})</sub></span></p></div>`;
+                finalResult = resStr;
+            }
+        } else {
+            finalResult = decValue.toString();
+        }
+        return { html, finalResult };
+    }
+
+    function runConversion() {
+        const numStr = document.getElementById('calcInput').value.trim();
+        const fromBase = parseInt(document.getElementById('calcFrom').value);
+        const toBase = parseInt(document.getElementById('calcTo').value);
+        const expBox = document.getElementById('calcExplanation');
+        const resBox = document.getElementById('calcResult');
+
+        if (!numStr) return alert("숫자를 입력하세요.");
+        const validRegex = new RegExp(`^[${"0123456789ABCDEF".substring(0, fromBase)}]+$`);
+        if (!validRegex.test(numStr)) return alert(`올바른 ${fromBase}진수 숫자가 아닙니다.`);
+
+        clearTimers();
+        resBox.style.display = "none";
+        expBox.style.display = "block";
+
+        let resultData;
+        if (fromBase === toBase) {
+            resultData = { html: `<div class="anim-step"><p>동일한 진법입니다.</p></div>`, finalResult: numStr };
+        } else if ((fromBase===2 && (toBase===8||toBase===16)) || ((fromBase===8||fromBase===16) && toBase===2)) {
+            resultData = getDirectConversionHTML(numStr, fromBase, toBase);
+        } else {
+            resultData = getStandardConversionHTML(numStr, fromBase, toBase);
+        }
+
+        expBox.innerHTML = resultData.html;
+        playAnimations('calcExplanation', () => {
+            resBox.innerHTML = `최종 결과: <span style="color:var(--accent);">${resultData.finalResult} <sub>(${toBase})</sub></span>`;
+            resBox.style.display = "block";
+        });
+    }
+
+    function randomComplement() {
+        document.getElementById('compInput').value = getRandomStr(2, 4 + Math.floor(Math.random()*4));
+    }
+
+    function runComplement() {
+        const binStr = document.getElementById('compInput').value.trim();
+        const expBox = document.getElementById('compExplanation');
+        if (!binStr) return alert("2진수를 입력하세요.");
+        if (/[^01]/.test(binStr)) return alert("2진수는 0과 1만 입력 가능합니다.");
+
+        clearTimers();
+        expBox.style.display = "block";
+
+        let html = `<h3 style="text-align:center;">음수 표현 (보수 계산 과정)</h3>`;
+        
+        let ones = binStr.split('').map(c => c==='0'?'1':'0').join('');
+        html += `<div class="anim-step">
+                    <div class="step-title">Step 1. 1의 보수 구하기 (비트 반전)</div>
+                    <p>0은 1로, 1은 0으로 모두 뒤집어 줍니다.</p>
+                    <table class="data-table">
+                        <tr><th>입력값</th><td>${binStr.split('').join(' ')}</td></tr>
+                        <tr><th>1의 보수</th><td class="highlight-text" style="color:#e67e22;">${ones.split('').join(' ')}</td></tr>
+                    </table>
+                 </div>`;
+
+        let twosArr = ones.split('');
+        let carry = 1;
+        for (let i = twosArr.length - 1; i >= 0; i--) {
+            if (twosArr[i] === '1' && carry === 1) { twosArr[i] = '0'; carry = 1; }
+            else if (twosArr[i] === '0' && carry === 1) { twosArr[i] = '1'; carry = 0; }
+        }
+        let twos = twosArr.join('');
+
+        html += `<div class="anim-step">
+                    <div class="step-title">Step 2. 2의 보수 구하기 (1 더하기)</div>
+                    <p>컴퓨터가 실제로 음수를 저장하는 방식입니다. 1의 보수 맨 끝자리에 1을 더합니다.</p>
+                    <div style="font-family:monospace; font-size:1.5em; text-align:center; background:#fff; padding:20px; border-radius:8px; border:1px solid #ccc; width:fit-content; margin:0 auto;">
+                        <div style="letter-spacing:5px;">&nbsp;&nbsp;${ones}</div>
+                        <div style="letter-spacing:5px; border-bottom:2px solid #333; padding-bottom:5px;">+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1</div>
+                        <div style="letter-spacing:5px; margin-top:10px; color:var(--success); font-weight:bold;">= ${twos}</div>
+                    </div>
+                 </div>`;
+
+        html += `<div class="anim-step result-box" style="display:block; margin-top:20px;">
+                    입력값 [${binStr}]의 최종 2의 보수는<br><span style="color:#c0392b; font-size:1.2em;">${twos}</span> 입니다.
+                 </div>`;
+
+        expBox.innerHTML = html;
+        playAnimations('compExplanation');
+    }
+
+    let currentQuiz = {};
+
+    function startQuiz() {
+        const bases = [2, 8, 10, 16];
+        let from = bases[Math.floor(Math.random()*4)];
+        let to = bases[Math.floor(Math.random()*4)];
+        while(from===to) to = bases[Math.floor(Math.random()*4)];
+        
+        let len = (from===2) ? Math.floor(Math.random()*3)+3 : Math.floor(Math.random()*2)+2;
+        let numStr = getRandomStr(from, len);
+
+        let ansData;
+        if ((from===2 && (to===8||to===16)) || ((from===8||from===16) && to===2)) {
+            ansData = getDirectConversionHTML(numStr, from, to);
+        } else {
+            ansData = getStandardConversionHTML(numStr, from, to);
+        }
+
+        currentQuiz = { q: numStr, from: from, to: to, ans: ansData.finalResult, html: ansData.html };
+
+        document.getElementById('quizArea').style.display = 'block';
+        document.getElementById('quizQuestion').innerHTML = `<span style="color:#7f8c8d; font-size:0.7em;">${from}진수를 ${to}진수로 변환하세요.</span><br><br>${numStr} <sub>(${from})</sub> &rarr; ? <sub>(${to})</sub>`;
+        document.getElementById('quizAnswer').value = '';
+        document.getElementById('quizResult').innerHTML = '';
+        document.getElementById('quizExpArea').style.display = 'none';
+        document.getElementById('quizExpArea').innerHTML = '';
+    }
+
+    function checkQuiz() {
+        const user = document.getElementById('quizAnswer').value.trim().toUpperCase();
+        if(!user) return alert("정답을 입력하세요.");
+
+        const resDiv = document.getElementById('quizResult');
+        const expDiv = document.getElementById('quizExpArea');
+
+        if(user === currentQuiz.ans) {
+            resDiv.innerHTML = `<span class="feedback-correct">정답입니다! 완벽해요!</span>`;
+            expDiv.style.display = 'none';
+        } else {
+            resDiv.innerHTML = `<span class="feedback-wrong">오답입니다. (정답: ${currentQuiz.ans})</span>`;
+            expDiv.innerHTML = `<h3 style="color:#c0392b; margin-top:0;">오답 풀이 확인</h3>` + currentQuiz.html.replace(/anim-step/g, '').replace(/opacity: 0;/g, '');
+            expDiv.style.display = 'block';
+        }
+    }
+
+    document.getElementById('calcInput').value = '';
+</script>
+
+</body>
+</html>
