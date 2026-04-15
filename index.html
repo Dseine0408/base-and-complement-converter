@@ -22,22 +22,24 @@
             color: var(--text);
             display: flex;
             justify-content: center;
-            padding: 50px 15px 40px 15px;
+            padding: 50px 15px 40px 15px; /* 상단 언어 버튼 공간 확보 */
             margin: 0;
             position: relative;
         }
         
+        /* 1. 언어 버튼 (작고 중앙 정렬) */
         .lang-btn {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            padding: 6px 12px;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px 12px;
             background-color: var(--primary);
             color: white;
             border: none;
             border-radius: 15px;
             font-weight: bold;
-            font-size: 0.85em;
+            font-size: 0.8em;
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: 0.2s;
@@ -95,6 +97,7 @@
             font-size: 1.4em;
         }
         
+        /* 메인 입력창 */
         .input-group {
             display: flex;
             flex-wrap: nowrap;
@@ -105,7 +108,7 @@
             width: 100%;
         }
         .input-group > * { flex: 1 1 auto; }
-        input, select, button {
+        .input-group input {
             padding: 14px 10px;
             font-size: 16px;
             border: 2px solid #e0e6ed;
@@ -113,38 +116,74 @@
             outline: none;
             transition: all 0.2s;
             width: 100%;
-        }
-        input:focus, select:focus { border-color: var(--secondary); }
-        input[type="text"] {
             font-weight: bold;
             font-size: 1.2em;
             letter-spacing: 2px;
             text-align: center;
         }
+        .input-group input:focus { border-color: var(--secondary); }
         
-        .btn-column {
+        /* 2. 진수 선택 그룹 (간격 축소 및 가운데 정렬) */
+        .base-select-group {
             display: flex;
-            flex-direction: column;
+            gap: 6px;
+            margin: 0 auto 15px auto;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 340px; /* 전체 넓어지지 않게 고정 */
+        }
+        .base-select-group select {
+            flex: 1;
+            padding: 10px 5px;
+            font-size: 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.2s;
+            text-align: center;
+            text-align-last: center;
+        }
+        .base-select-group select:focus { border-color: var(--secondary); }
+
+        /* 3. 액션 버튼 그룹 (파란색 길게 flex:2, 주황색 짧게 flex:1, 가운데 정렬) */
+        .action-group {
+            display: flex;
+            flex-direction: row;
             gap: 10px;
             width: 100%;
-            margin-top: 15px;
+            max-width: 450px;
+            margin: 0 auto;
+            align-items: stretch;
         }
-        .btn-column button {
-            width: 100%;
-            padding: 14px;
-            font-size: 1.1em;
+        .action-group button, .action-group input {
+            padding: 14px 10px;
+            font-size: 1.05em;
             font-weight: bold;
             border: none;
             border-radius: 8px;
-            cursor: pointer;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .btn-action { background-color: var(--secondary); color: white; }
+        .btn-action { background-color: var(--secondary); color: white; flex: 2; cursor: pointer; transition: 0.2s; }
         .btn-action:hover { background-color: #2980b9; transform: translateY(-2px); }
         .btn-action:active { transform: translateY(0); }
-        .btn-random { background-color: #f39c12; color: white; }
+        
+        .btn-random { background-color: #f39c12; color: white; flex: 1; cursor: pointer; transition: 0.2s; }
         .btn-random:hover { background-color: #d68910; transform: translateY(-2px); }
         .btn-random:active { transform: translateY(0); }
+
+        /* 퀴즈 단일 버튼 정렬 */
+        .single-action-group {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .single-action-group .btn-action {
+            flex: none;
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 20px;
+        }
 
         .smooth-wrapper {
             display: grid;
@@ -189,51 +228,15 @@
             display: inline-block;
             font-weight: bold;
         }
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            margin: 15px 0;
-            -webkit-overflow-scrolling: touch;
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: center;
-            background: white;
-            min-width: 280px;
-        }
-        .data-table th, .data-table td {
-            border: 1px solid #dcdde1;
-            padding: 10px;
-        }
+        .table-responsive { width: 100%; overflow-x: auto; margin: 15px 0; -webkit-overflow-scrolling: touch; }
+        .data-table { width: 100%; border-collapse: collapse; text-align: center; background: white; min-width: 280px; }
+        .data-table th, .data-table td { border: 1px solid #dcdde1; padding: 10px; }
         .data-table th { background-color: #f1f2f6; color: var(--primary); }
         .data-table .highlight-text { font-weight: bold; color: var(--accent); font-size: 1.2em; }
         
-        .direct-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            margin: 20px 0;
-            font-size: 1.1em;
-            font-family: monospace;
-        }
-        .bit-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-        }
-        .bit-group {
-            display: inline-block;
-            padding: 8px 10px;
-            background: #fff3cd;
-            border: 2px solid #f1c40f;
-            border-radius: 8px;
-            font-weight: bold;
-            color: #d35400;
-        }
+        .direct-box { display: flex; flex-direction: column; align-items: center; gap: 15px; margin: 20px 0; font-size: 1.1em; font-family: monospace; }
+        .bit-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%; }
+        .bit-group { display: inline-block; padding: 8px 10px; background: #fff3cd; border: 2px solid #f1c40f; border-radius: 8px; font-weight: bold; color: #d35400; }
         .arrow-down { color: var(--secondary); font-size: 1.5em; text-align: center; }
         
         .math-table { border-collapse: collapse; font-family: monospace; font-size: 1.2em; margin: 0 auto; }
@@ -261,41 +264,11 @@
             display: none;
             word-break: keep-all;
         }
-        .hex-guide span {
-            display: inline-block;
-            background: #ffe082;
-            padding: 3px 6px;
-            border-radius: 4px;
-            margin: 2px;
-            font-weight: bold;
-            color: #d35400;
-        }
+        .hex-guide span { display: inline-block; background: #ffe082; padding: 3px 6px; border-radius: 4px; margin: 2px; font-weight: bold; color: #d35400; }
         
-        .difficulty-selector {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .diff-btn {
-            flex: 1;
-            min-width: 100px;
-            padding: 10px 15px;
-            border-radius: 20px;
-            border: 2px solid #e0e6ed;
-            background: white;
-            cursor: pointer;
-            font-weight: bold;
-            color: var(--primary);
-            transition: 0.2s;
-            text-align: center;
-        }
-        .diff-btn.active {
-            border-color: var(--primary);
-            background: var(--primary);
-            color: white;
-        }
+        .difficulty-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .diff-btn { flex: 1; min-width: 100px; padding: 10px 15px; border-radius: 20px; border: 2px solid #e0e6ed; background: white; cursor: pointer; font-weight: bold; color: var(--primary); transition: 0.2s; text-align: center; }
+        .diff-btn.active { border-color: var(--primary); background: var(--primary); color: white; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .anim-step { opacity: 0; transform: translateY(15px); transition: all 0.3s ease-out; }
@@ -330,14 +303,14 @@
             <input type="text" id="calcInput" data-placeholder-ko="숫자 입력 (예: 10.11, 1F.A)" data-placeholder-en="Input (e.g., 10.11, 1F.A)" placeholder="숫자 입력 (예: 10.11, 1F.A)" oninput="this.value = this.value.toUpperCase()">
         </div>
         
-        <div class="input-group">
+        <div class="base-select-group">
             <select id="calcFrom" onchange="checkHexGuide()">
                 <option value="2" data-ko="2진수" data-en="Binary(2)">2진수</option>
                 <option value="8" data-ko="8진수" data-en="Octal(8)">8진수</option>
                 <option value="10" selected data-ko="10진수" data-en="Decimal(10)">10진수</option>
                 <option value="16" data-ko="16진수" data-en="Hex(16)">16진수</option>
             </select>
-            <div style="flex: 0 0 auto; font-weight:bold; color:#7f8c8d; padding:0 5px;">▶</div>
+            <div style="flex: 0 0 auto; font-weight:bold; color:#7f8c8d; font-size:12px;">▶</div>
             <select id="calcTo" onchange="checkHexGuide()">
                 <option value="2" selected data-ko="2진수" data-en="Binary(2)">2진수</option>
                 <option value="8" data-ko="8진수" data-en="Octal(8)">8진수</option>
@@ -346,7 +319,7 @@
             </select>
         </div>
         
-        <div class="btn-column">
+        <div class="action-group">
             <button class="btn-action" data-ko="풀이 애니메이션 보기" data-en="View Animation" onclick="runConversion()">풀이 애니메이션 보기</button>
             <button class="btn-random" data-ko="랜덤 생성" data-en="Random" onclick="randomConversion()">랜덤 생성</button>
         </div>
@@ -372,7 +345,7 @@
             <input type="text" id="compInput" data-placeholder-ko="2진수 정수 입력 (예: 0101)" data-placeholder-en="Binary Integer (e.g. 0101)" placeholder="2진수 정수 입력 (예: 0101)" oninput="this.value = this.value.replace(/[^01]/g, '')">
         </div>
         
-        <div class="btn-column">
+        <div class="action-group">
             <button class="btn-action" onclick="runComplement()" data-ko="보수 구하기" data-en="Calculate">보수 구하기</button>
             <button class="btn-random" onclick="randomComplement()" data-ko="랜덤 생성" data-en="Random">랜덤 생성</button>
         </div>
@@ -392,7 +365,7 @@
             <button id="diff-hard" class="diff-btn" onclick="setDiff('hard')" data-ko="어려움 모드" data-en="Hard Mode">어려움 모드</button>
         </div>
         
-        <div class="btn-column" style="margin-bottom: 20px;">
+        <div class="single-action-group">
             <button class="btn-action" style="background-color: var(--primary);" data-ko="새로운 문제 받기" data-en="Get New Question" onclick="startQuiz()">새로운 문제 받기</button>
         </div>
 
@@ -401,9 +374,9 @@
                 <div id="quizArea">
                     <div id="quizQuestion" style="font-size: 1.5em; text-align: center; background: #f1f2f6; padding: 25px 15px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; word-break: break-all;"></div>
                     
-                    <div class="btn-column" style="margin-top: 0;">
-                        <input type="text" id="quizAnswer" data-placeholder-ko="정답 입력" data-placeholder-en="Enter Answer" placeholder="정답 입력" oninput="this.value = this.value.toUpperCase()">
-                        <button class="btn-action" data-ko="채점하기" data-en="Submit" onclick="checkQuiz()">채점하기</button>
+                    <div class="action-group" style="margin-top: 0; max-width: 450px;">
+                        <input type="text" id="quizAnswer" data-placeholder-ko="정답 입력" data-placeholder-en="Enter Answer" placeholder="정답 입력" oninput="this.value = this.value.toUpperCase()" style="border: 2px solid #e0e6ed; box-shadow: none;">
+                        <button class="btn-action" style="flex: 1;" data-ko="채점하기" data-en="Submit" onclick="checkQuiz()">채점하기</button>
                     </div>
                 </div>
             </div>
